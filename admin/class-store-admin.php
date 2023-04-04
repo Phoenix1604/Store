@@ -182,15 +182,67 @@ class Store_Admin {
 			}
 			echo '</select>';
 			echo '<label for="pickup-date">Pickup Date</label>';
-			echo '<input type="date" id="pickup-date">';
+			echo '<input type="date" id="pickup-date" name="pickup-date">';
 			echo '</div>';
 		}
 	}
 
 	function save_store_to_order_meta( $order ) {
-		if ( isset( $_POST['store_id'] ) ) {
+		if ( isset( $_POST['store_id']) && isset($_POST['pickup-date'])) {
 			$store_id = sanitize_text_field( $_POST['store_id'] );
+			$pickup_date = sanitize_text_field($_POST['pickup-date']);
 			$order->update_meta_data( 'store_id', $store_id );
+			$order->update_meta_data('pickup_date', $pickup_date);
 		}
 	}
+
+	function display_store_information_on_confirmation_page( $order_id ) {
+		// Get the order object
+		$order = wc_get_order( $order_id );
+	
+		// Get the store ID from the order metadata
+		$store_id = $order->get_meta( 'store_id' );
+	
+		// If a store ID is set, display the store information
+		if ( $store_id ) {
+			// Get the store name and location from the store custom post type
+			$store_name = get_post_meta( $store_id, 'store_name', true );
+			$store_location = get_post_meta( $store_id, 'store_location', true );
+	
+			// Get the pickup date from the order metadata
+			$pickup_date = $order->get_meta( 'pickup_date' );
+	
+			// Display the store information and pickup date on the thank you page
+			echo '<section class="wdmstore-woocommerce-storedetails">';
+			echo '<h2 class="wdmstore-woocommerce-storedetails__title">' . __( 'Store Information', 'store' ) . '</h2>';
+			echo '<p><strong>' . __( 'Store Name', 'your-textdomain' ) . ':</strong> ' . $store_name . '</p>';
+			echo '<p><strong>' . __( 'Store Location', 'your-textdomain' ) . ':</strong> ' . $store_location . '</p>';
+			echo '<p><strong>' . __( 'Pickup Date', 'your-textdomain' ) . ':</strong> ' . $pickup_date . '</p>';
+			echo '</section>';
+		}
+	}
+
+	function display_store_information_in_order_email( $order, $sent_to_admin, $plain_text ) {
+		// Get the store ID from the order metadata
+		$store_id = $order->get_meta( 'store_id' );
+	
+		// If a store ID is set, display the store information
+		if ( $store_id ) {
+			// Get the store name and location from the store custom post type
+			$store_name = get_post_meta( $store_id, 'store_name', true );
+			$store_location = get_post_meta( $store_id, 'store_location', true );
+	
+			// Get the pickup date from the order metadata
+			$pickup_date = $order->get_meta( 'pickup_date' );
+	
+			// Display the store information in the order meta section of the email
+			echo '<h2>' . __( 'Store Information', 'store' ) . '</h2>';
+			echo '<ul>';
+			echo '<li><strong>' . __( 'Store Name', 'store' ) . ':</strong> ' . $store_name . '</li>';
+			echo '<li><strong>' . __( 'Store Location', 'store' ) . ':</strong> ' . $store_location . '</li>';
+			echo '<li><strong>' . __( 'Pickup Date', 'store' ) . ':</strong> ' . $pickup_date . '</li>';
+			echo '</ul>';
+		}
+	}
+
 }

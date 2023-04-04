@@ -160,7 +160,8 @@ class Store {
 		$this->loader->add_action( 'save_post_store', $plugin_admin,'save_store_meta_box_values', 10, 2 );
 		$this->loader->add_action( 'woocommerce_review_order_before_payment', $plugin_admin, 'add_choose_store_section' );
 		$this->loader->add_action('woocommerce_checkout_create_order', $plugin_admin, 'save_store_to_order_meta' );
-
+		$this->loader->add_action( 'woocommerce_thankyou', $plugin_admin, 'display_store_information_on_confirmation_page' );
+		$this->loader->add_action( 'woocommerce_email_order_meta', $plugin_admin, 'display_store_information_in_order_email', 10, 3 );
 	}
 
 	/**
