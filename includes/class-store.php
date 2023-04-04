@@ -158,6 +158,8 @@ class Store {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action('init', $plugin_admin, 'custom_store_post_type');
 		$this->loader->add_action( 'save_post_store', $plugin_admin,'save_store_meta_box_values', 10, 2 );
+		$this->loader->add_action( 'woocommerce_review_order_before_payment', $plugin_admin, 'add_choose_store_section' );
+		$this->loader->add_action('woocommerce_checkout_create_order', $plugin_admin, 'save_store_to_order_meta' );
 
 	}
 

@@ -102,7 +102,7 @@ class Store_Admin {
 
 	function custom_store_post_type() {
 
-		include_once plugin_dir_path( __FILE__ ) . 'partials/store-custome-metaboxes.php';
+		include_once plugin_dir_path( __FILE__ ) . 'partials/store-custom-metaboxes.php';
 
 		$labels = array(
 			'name' => __('Stores', 'Post Type General Name', 'store'),
@@ -161,4 +161,36 @@ class Store_Admin {
 
     }
 
+	function add_choose_store_section() {
+		// Get all "store" custom post type posts
+		$stores = get_posts( array(
+			'post_type' => 'store',
+			'numberposts' => -1,
+		) );
+	
+		// If there are stores, display the "Choose Store" section
+		if ( $stores) {
+			echo '<div id="choose-store">';
+			echo '<label for="pickup-store">Select Store</label>';
+			echo '<select name="store_id" id="pickup-store">';
+			echo '<option value="">' . __( 'Select a store', 'store' ) . '</option>';
+			foreach ( $stores as $store ) {
+				$store_id = $store->ID;
+				$store_name = get_post_meta( $store_id, 'store_name', true );
+				$store_location = get_post_meta( $store_id, 'store_location', true );
+				echo '<option value="' . $store_id . '">' . $store_name . ' - ' . $store_location . '</option>';
+			}
+			echo '</select>';
+			echo '<label for="pickup-date">Pickup Date</label>';
+			echo '<input type="date" id="pickup-date">';
+			echo '</div>';
+		}
+	}
+
+	function save_store_to_order_meta( $order ) {
+		if ( isset( $_POST['store_id'] ) ) {
+			$store_id = sanitize_text_field( $_POST['store_id'] );
+			$order->update_meta_data( 'store_id', $store_id );
+		}
+	}
 }
