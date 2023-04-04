@@ -156,6 +156,8 @@ class Store {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action('init', $plugin_admin, 'custom_store_post_type');
+		$this->loader->add_action( 'save_post_store', $plugin_admin,'save_store_meta_box_values', 10, 2 );
 
 	}
 

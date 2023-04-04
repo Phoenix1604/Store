@@ -100,4 +100,65 @@ class Store_Admin {
 
 	}
 
+	function custom_store_post_type() {
+
+		include_once plugin_dir_path( __FILE__ ) . 'partials/store-custome-metaboxes.php';
+
+		$labels = array(
+			'name' => __('Stores', 'Post Type General Name', 'store'),
+			'singular_name' => __('Store', 'Post Type Singular Name', 'store'),
+			'menu_name' => __('Stores', 'store'),
+			'add_new' => 'Add New',
+			'add_new_item' => __('Add New Item', 'store'),
+			'edit_item' => __('Edit Store', 'store'),
+			'new_item' =>  __('New Store', 'store'),
+			'all_items' => __('All Stores', 'store'),
+			'view_item' => __('View Store', 'store'),
+			'view_items' => __('View Stores', 'store'),
+			'search_items' => 'Search Stores',
+			'not_found' =>  'No stores found',
+			'not_found_in_trash' => 'No stores found in Trash',
+			'parent_item_colon' => '',
+			'menu_name' => 'Stores'
+		);
+		$args = array(
+			'labels' => $labels,
+			'public' => true,
+			'show_ui' => true,
+			'show_in_menu' => true,
+			'show_in_admin_bar' => true,
+			'show_in_nav_menus' => true,
+			'has_archive' => true,
+			'menu_position' => 20,
+			'menu_icon' => 'dashicons-cart',
+			'supports' => array( 'title', 'author'),
+			'rewrite' => array( 'slug' => 'store' ),
+			'capability_type' => 'post',
+			'register_meta_box_cb' => 'add_store_meta_boxes'
+		);
+		register_post_type( 'store', $args );
+	}
+
+	function save_store_meta_box_values( $post_id , $post ) {
+        // // Check if nonce is set
+        if (!isset( $_POST['store_location_nonce']) || !wp_verify_nonce($_POST['store_location_nonce'], 'store_meta_box_location')) {
+			return $post_id;
+		}
+    
+		if (!isset( $_POST['store_name_nonce']) || !wp_verify_nonce($_POST['store_name_nonce'], 'store_meta_box_name')) {
+			return $post_id;
+		}
+        
+        // Check if user has permissions to save data
+        if ( !current_user_can( 'edit_post', $post_id ) ) {
+			return $post_id;
+		}
+         //Save store location & Name value
+        $store_name = sanitize_text_field( $_POST['store_name'] );
+		$store_location = sanitize_text_field( $_POST['store_location'] );
+		update_post_meta( $post_id, 'store_name', $store_name );
+		update_post_meta( $post_id, 'store_location', $store_location );
+
+    }
+
 }
