@@ -100,6 +100,7 @@ class Store_Admin {
 
 	}
 
+	//Register Custom post type of store for adding the store details by the admin
 	function custom_store_post_type() {
 
 		include_once plugin_dir_path( __FILE__ ) . 'partials/store-custom-metaboxes.php';
@@ -139,6 +140,8 @@ class Store_Admin {
 		register_post_type( 'store', $args );
 	}
 
+
+	// Add meta boxes for store name and location for the admin
 	function save_store_meta_box_values( $post_id , $post ) {
         // // Check if nonce is set
         if (!isset( $_POST['store_location_nonce']) || !wp_verify_nonce($_POST['store_location_nonce'], 'store_meta_box_location')) {
@@ -161,6 +164,7 @@ class Store_Admin {
 
     }
 
+	//Add choose store option for customers in woocommerce checkout page
 	function add_choose_store_section() {
 		// Get all "store" custom post type posts
 		$stores = get_posts( array(
@@ -187,6 +191,7 @@ class Store_Admin {
 		}
 	}
 
+	//Saved the choosed store and pickup date option for the order
 	function save_store_to_order_meta( $order ) {
 		if ( isset( $_POST['store_id']) && isset($_POST['pickup-date'])) {
 			$store_id = sanitize_text_field( $_POST['store_id'] );
@@ -196,6 +201,8 @@ class Store_Admin {
 		}
 	}
 
+
+	//Display the choosed store and pickup date on order confirmation page
 	function display_store_information_on_confirmation_page( $order_id ) {
 		// Get the order object
 		$order = wc_get_order( $order_id );
@@ -222,6 +229,7 @@ class Store_Admin {
 		}
 	}
 
+	//Display the choosed store and pickup date on ordert confirmation mail
 	function display_store_information_in_order_email( $order, $sent_to_admin, $plain_text ) {
 		// Get the store ID from the order metadata
 		$store_id = $order->get_meta( 'store_id' );
@@ -244,5 +252,95 @@ class Store_Admin {
 			echo '</ul>';
 		}
 	}
+
+
+	// Display store information in WooCommerce admin orders section
+
+	function display_store_information_in_admin_order( $order ) {
+		// Get the store ID from the order metadata
+		$store_id = $order->get_meta( 'store_id' );
+
+		// If a store ID is set, display the store information
+		if ( $store_id ) {
+			// Get the store name and location from the store custom post type
+			$store_name = get_post_meta( $store_id, 'store_name', true );
+			$store_location = get_post_meta( $store_id, 'store_location', true );
+
+			// Get the pickup date from the order metadata
+			$pickup_date = $order->get_meta( 'pickup_date' );
+
+			// Display the store information and pickup date in the order details section
+			echo '<p><strong>' . __( 'Store Name', 'store' ) . ':</strong> ' . $store_name . '</p>';
+			echo '<p><strong>' . __( 'Store Location', 'store' ) . ':</strong> ' . $store_location . '</p>';
+			echo '<p><strong>' . __( 'Pickup Date', 'store' ) . ':</strong> ' . $pickup_date . '</p>';
+		}
+	}
+
+
+	//Register ready to pickup status option for orders
+	function register_readytopickup_status() {
+		register_post_status( 'wc-ready-to-pickup', array(
+			'label'                     => _x( 'Ready To Pickup', 'Order status', 'store' ),
+			'public'                    => true,
+			'exclude_from_search'       => false,
+			'show_in_admin_all_list'    => true,
+			'show_in_admin_status_list' => true,
+			'label_count'               => _n_noop( 'Ready To Pickup <span class="count">(%s)</span>', 'Ready To Pickup<span class="count">(%s)</span>', 'store' )
+		) );
+	}
+
+	//Add ready to pickup with other statuses
+	function add_ready_to_pickup_order_status($order_statuses)
+	{
+		$order_statuses['wc-ready-to-pickup'] = __('Ready to Pickup', 'Order status','store');
+		return $order_statuses;
+	}
+
+	//Update order status in database
+	function update_order_status_in_database($order_id, $old_status, $new_status, $order)
+	{
+		if ($new_status == 'ready-to-pickup' && $old_status != 'ready-to-pickup') {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'posts';
+			$wpdb->update($table_name, array('post_status' => 'wc-ready-to-pickup'), array('ID' => $order_id));
+		}
+		return $new_status;
+	}
+
+	function add_custom_columns_to_orders_page( $columns ) {
+		// Add store details and pickup date columns
+		$columns['store_details'] = __( 'Store Details', 'store' );
+		$columns['pickup_date'] = __( 'Pickup Date', 'store' );
+		return $columns;
+	}
+
+	function populate_custom_columns_with_data( $column ) {
+		global $post;
+		$order_id = $post->ID;
+		$order = wc_get_order( $order_id );
+	
+		// Get the store ID from the order metadata
+		$store_id = $order->get_meta( 'store_id' );
+	
+		if ( $column === 'store_details' ) {
+			
+			if ( $store_id ) {
+				// Get the store name and location from the store custom post type
+				$store_name = get_post_meta( $store_id, 'store_name', true );
+				$store_location = get_post_meta( $store_id, 'store_location', true );
+	
+				
+				echo '<p><strong>' . __( 'Store Name', 'store' ) . ':</strong> ' . $store_name . '</p>';
+				echo '<p><strong>' . __( 'Store Location', 'store' ) . ':</strong> ' . $store_location . '</p>';
+			}
+		}
+	
+		if ( $column === 'pickup_date' ) {
+			// Get the pickup date from the order metadata
+			$pickup_date = $order->get_meta( 'pickup_date' );
+			echo $pickup_date;
+		}
+	}
+
 
 }

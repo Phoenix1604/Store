@@ -158,10 +158,20 @@ class Store {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action('init', $plugin_admin, 'custom_store_post_type');
 		$this->loader->add_action( 'save_post_store', $plugin_admin,'save_store_meta_box_values', 10, 2 );
+
+
 		$this->loader->add_action( 'woocommerce_review_order_before_payment', $plugin_admin, 'add_choose_store_section' );
 		$this->loader->add_action('woocommerce_checkout_create_order', $plugin_admin, 'save_store_to_order_meta' );
 		$this->loader->add_action( 'woocommerce_thankyou', $plugin_admin, 'display_store_information_on_confirmation_page' );
+		$this->loader->add_action( 'woocommerce_view_order', $plugin_admin, 'display_store_information_on_confirmation_page' );
 		$this->loader->add_action( 'woocommerce_email_order_meta', $plugin_admin, 'display_store_information_in_order_email', 10, 3 );
+
+		$this->loader->add_action( 'init', $plugin_admin, 'register_readytopickup_status' );
+		$this->loader->add_filter('wc_order_statuses', $plugin_admin, 'add_ready_to_pickup_order_status');
+		$this->loader->add_action( 'woocommerce_order_status_changed', $plugin_admin, 'update_order_status_in_database', 10, 4 );
+		$this->loader->add_action( 'woocommerce_admin_order_data_after_shipping_address',  $plugin_admin,'display_store_information_in_admin_order', 10, 1 );
+		$this->loader->add_filter( 'manage_edit-shop_order_columns', $plugin_admin, 'add_custom_columns_to_orders_page' );
+		$this->loader->add_action( 'manage_shop_order_posts_custom_column', $plugin_admin, 'populate_custom_columns_with_data' );
 	}
 
 	/**
