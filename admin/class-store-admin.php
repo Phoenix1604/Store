@@ -132,7 +132,7 @@ class Store_Admin {
 			'has_archive' => true,
 			'menu_position' => 20,
 			'menu_icon' => 'dashicons-cart',
-			'supports' => array( 'title', 'author'),
+			'supports' => array('author'),
 			'rewrite' => array( 'slug' => 'store' ),
 			'capability_type' => 'post',
 			'register_meta_box_cb' => 'add_store_meta_boxes'
@@ -151,6 +151,15 @@ class Store_Admin {
 		if (!isset( $_POST['store_name_nonce']) || !wp_verify_nonce($_POST['store_name_nonce'], 'store_meta_box_name')) {
 			return $post_id;
 		}
+
+		if (!isset( $_POST['store_email_nonce']) || !wp_verify_nonce($_POST['store_email_nonce'], 'store_meta_box_email')) {
+			return $post_id;
+		}
+        
+		if (!isset( $_POST['store_phone_nonce']) || !wp_verify_nonce($_POST['store_phone_nonce'], 'store_meta_box_phone')) {
+			return $post_id;
+		}
+        
         
         // Check if user has permissions to save data
         if ( !current_user_can( 'edit_post', $post_id ) ) {
@@ -159,10 +168,58 @@ class Store_Admin {
          //Save store location & Name value
         $store_name = sanitize_text_field( $_POST['store_name'] );
 		$store_location = sanitize_text_field( $_POST['store_location'] );
+		$store_email = sanitize_text_field( $_POST['store_email'] );
+		$store_phone = sanitize_text_field( $_POST['store_phone'] );
 		update_post_meta( $post_id, 'store_name', $store_name );
 		update_post_meta( $post_id, 'store_location', $store_location );
+		update_post_meta( $post_id, 'store_email', $store_email );
+		update_post_meta( $post_id, 'store_phone', $store_phone );
 
     }
+
+	// Add Store name, Location, Email and Phone columns in the all stores page
+	function add_custom_store_columns($columns) {
+		// Add custom columns before date and author columns
+		$columns = array(
+			'store_name' => 'Store Name',
+			'store_location' => 'Store Location',
+			'store_email' => 'Email',
+			'store_phone' => 'Phone') +
+			array_slice($columns, 2, null, true);
+		return $columns;
+	}
+
+	//Populate the columns with meta data
+	function add_custom_store_columns_content($column, $post_id) {
+		switch ($column) {
+			case 'store_name':
+				$store_name = get_post_meta($post_id, 'store_name', true);
+				echo $store_name;
+				break;
+			case 'store_location':
+				$location = get_post_meta($post_id, 'store_location', true);
+				echo $location;
+				break;
+			case 'store_email':
+				$email = get_post_meta($post_id, 'store_email', true);
+				echo $email;
+				break;
+			case 'store_phone':
+				$phone = get_post_meta($post_id, 'store_phone', true);
+				echo $phone;
+				break;
+		}
+	}
+
+	//Make Columns Sortable
+	function make_custom_columns_sortable($columns) {
+		$columns['store_name'] = 'store_name';
+		$columns['store_location'] = 'store_location';
+		$columns['store_email'] = 'store_email';
+		$columns['store_phone'] = 'store_phone';
+		return $columns;
+	}
+
 
 	//Add choose store option for customers in woocommerce checkout page
 	function add_choose_store_section() {
