@@ -172,6 +172,7 @@ class Store {
 		$this->loader->add_action( 'woocommerce_admin_order_data_after_shipping_address',  $plugin_admin,'display_store_information_in_admin_order', 10, 1 );
 		$this->loader->add_filter( 'manage_edit-shop_order_columns', $plugin_admin, 'add_custom_columns_to_orders_page' );
 		$this->loader->add_action( 'manage_shop_order_posts_custom_column', $plugin_admin, 'populate_custom_columns_with_data' );
+		$this->loader->add_action( 'wdm_store_sendmail_for_pickup', $plugin_admin, 'send_next_day_pickup_emails' );
 	}
 
 	/**

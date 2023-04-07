@@ -268,7 +268,7 @@ class Store_Admin {
 
 			// Get the pickup date from the order metadata
 			$pickup_date = $order->get_meta( 'pickup_date' );
-
+			
 			// Display the store information and pickup date in the order details section
 			echo '<p><strong>' . __( 'Store Name', 'store' ) . ':</strong> ' . $store_name . '</p>';
 			echo '<p><strong>' . __( 'Store Location', 'store' ) . ':</strong> ' . $store_location . '</p>';
@@ -342,5 +342,41 @@ class Store_Admin {
 		}
 	}
 
+	function send_next_day_pickup_emails(){
+		$args = array(
+			'post_type' => 'shop_order',
+			'posts_per_page' => '-1',
+			'post_status' => 'any'
+		  );
+	  
+		$query = new WP_Query($args);
+		$posts = $query->posts;
 
+		// Calculate next day
+		$next_day = strtotime( '+1 day', current_time( 'timestamp' ) );
+		$next_day_date = date( 'Y-m-d', $next_day );
+
+		foreach ( $posts as $post ) {
+			// Get order and customer details
+			$order_id = $post->ID;
+			$order = wc_get_order( $order_id );
+			$shipping_method = @array_shift($order->get_shipping_methods());
+			$shipping_method_id = $shipping_method['method_id'];
+			$pickup_date = $order->get_meta( 'pickup_date' );
+	
+			if($shipping_method_id == 'local_pickup' && strtotime($pickup_date) == strtotime($next_day_date)){
+				$customer_email = $order->get_billing_email();
+				$customer_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+
+				$subject = 'Your order pickup is tomorrow!';
+				$message = "Dear {$customer_name},\n\n";
+				$message .= "This is a reminder that your order with order number #{$order->get_order_number()} is scheduled for pickup tomorrow, on " . $pickup_date . ".\n";
+				$message .= "Thank you for choosing our store!\n\n";
+				
+				$headers = 'Content-Type: text/plain; charset=utf-8';
+				wp_mail( $customer_email, $subject, $message, $headers );
+				
+			}
+		}
+	}
 }

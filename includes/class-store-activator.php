@@ -30,6 +30,12 @@ class Store_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
+		$now = time();
+    	$scheduled_time = strtotime( '06:00:00', $now );
+    	// Schedule the event to run every day at 6am 
+    	if ( ! wp_next_scheduled( 'wdm_store_sendmail_for_pickup' ) ) {
+        	wp_schedule_event( $scheduled_time, 'daily', 'wdm_store_sendmail_for_pickup' );
+    	}
 	}
 
 }
